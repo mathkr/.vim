@@ -74,8 +74,11 @@ nnoremap <Leader>hs :split<CR>
 " open selection in firefox
 vnoremap <Leader>ff y<esc>:!firefox <C-R>0<CR><CR>
 
-" rebuild tags file
-nnoremap <Leader>ct :!ctags -R .<CR><CR>
+" toggle taglist
+nnoremap <Leader><CR> :TlistToggle<CR>
+
+" rebuild tags file and update taglist
+nnoremap <Leader>ct :silent !ctags -R<CR>:redraw!<CR>:TlistUpdate<CR>
 
 " ctrl-p (fuzzy file search)
 let g:ctrlp_map = ''
@@ -99,10 +102,6 @@ vnoremap <Leader>cb :TCommentBlock<CR>
 " java/cpp/javascript
 " autocmd FileType java,javascript,cpp noremap <buffer><Leader>c <esc>I// <esc>$
 " autocmd FileType java,javascript,cpp vnoremap <buffer><Leader>c <esc>`>a */<esc>`<i/* <esc>
-
-" html
-" autocmd FileType html noremap <buffer><Leader>c <esc>I<!-- <esc>A --><esc>
-" autocmd FileType html vnoremap <buffer><Leader>c <esc>`>a --><esc>`<i<!-- <esc>
 
 """""""""""""""""""""""""""""
 " navigating between splits "
