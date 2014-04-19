@@ -16,6 +16,13 @@ set sessionoptions-=options
 "       general       "
 "                     "
 
+" colorscheme
+set t_Co=256
+colorscheme molokai
+if (has("gui_running") == 0)
+	let g:rehash256=1
+endif
+
 " miscellaneous
 syntax on
 filetype on
@@ -23,10 +30,22 @@ set autoindent
 set number
 set clipboard=unnamedplus
 set scrolloff=2
+set title
+
+" disable backup and swap files
+set nobackup
+set noswapfile
 
 " mark trailing whitespace
 highlight ExtraWhitespace cterm=bold ctermbg=cyan ctermfg=white gui=bold guibg=cyan guifg=white
 match ExtraWhitespace /\s\+$/
+
+" configure listchars
+set listchars=tab:»·,eol:¶,trail:ϟ,nbsp:ϟ
+
+" mark column 80
+highlight ColorColumn ctermfg=red guifg=red ctermbg=NONE guibg=NONE
+set colorcolumn=81,82,83,84,85
 
 " search options
 set hlsearch
@@ -41,13 +60,21 @@ noremap \ ,
 noremap n nzz
 noremap N Nzz
 
-"""""""""""""""""
-" abbreviations "
-"               "
+"""""""""""""""""""
+" taglist options "
+"                 "
 
-" java abbreviations
-:iabbrev sysout System.out.println
-:iabbrev mainfunc public static void main(String[] args)
+let Tlist_Exit_OnlyWindow = 1
+let Tlist_GainFocus_On_ToggleOpen = 1
+let Tlist_WinWidth = 30
+let Tlist_Enable_Fold_Column = 0
+let Tlist_Display_Tag_Scope = 0
+
+""""""""""""""""""""
+" snipmate options "
+"                  "
+
+let g:snips_author="Matthis Krause"
 
 """""""""""""""""""
 " leader commands "
@@ -59,6 +86,9 @@ nnoremap <Leader>vr :tab drop $MYVIMRC<CR>
 " uppercase current word
 inoremap <Leader>u <esc>viwUea
 nnoremap <Leader>u viwUe
+
+" insert 4 spaces
+inoremap <Leader><Tab> <ESC>a    
 
 " save
 nnoremap <Leader>w :w<CR>
@@ -85,14 +115,17 @@ let g:ctrlp_map = ''
 nnoremap <Leader>t :CtrlP<CR>
 
 " kill search highlighting
-nnoremap <Leader>ks :let @/ = ""<CR>
+nnoremap <Leader>ks :nohlsearch<CR>
+
+" open a new terminal window
+noremap <Leader>nt :!xfce4-terminal<CR><CR>
 
 """"""""""""""""""""""""""""
 " commenting with tComment "
 "	                   "
- 
+
 " commenting out code
-nnoremap <Leader>cc :TCommentMaybeInline<CR>
+nnoremap <Leader>cc :TComment<CR>
 vnoremap <Leader>cc :TCommentMaybeInline<CR>
 
 " creating block comments
