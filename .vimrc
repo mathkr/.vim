@@ -26,6 +26,7 @@ endif
 " miscellaneous
 syntax on
 filetype on
+filetype plugin on
 set autoindent
 set number
 set clipboard=unnamedplus
