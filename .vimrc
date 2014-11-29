@@ -23,10 +23,23 @@ if (has("gui_running") == 0)
 	let g:rehash256=1
 endif
 
+if (has("gui_running"))
+        set guifont=Liberation\ Mono\ 8
+        set guiheadroom=0
+        set guioptions-=r " removes right scrollbar
+        set guioptions-=T " removes toolbar
+        set guioptions-=m " removes menubar
+endif
+
 " miscellaneous
 syntax on
 filetype on
 filetype plugin on
+set expandtab
+set tabstop=8
+set softtabstop=4
+set shiftwidth=4
+set smarttab
 set autoindent
 set number
 set clipboard=unnamedplus
@@ -42,7 +55,7 @@ highlight ExtraWhitespace cterm=bold ctermbg=cyan ctermfg=white gui=bold guibg=c
 match ExtraWhitespace /\s\+$/
 
 " configure listchars
-set listchars=tab:»·,eol:¶,trail:ϟ,nbsp:ϟ
+set listchars=tab:»·,eol:¶,trail:-,nbsp:-
 
 " mark column 80
 highlight ColorColumn ctermfg=red guifg=red ctermbg=NONE guibg=NONE
@@ -76,6 +89,16 @@ let Tlist_Display_Tag_Scope = 0
 "                  "
 
 let g:snips_author="Matthis Krause"
+
+"""""""""""""""""""""
+" syntastic options "
+"                   "
+
+let g:syntastic_check_on_open=0
+let g:syntastic_check_on_wq=0
+let g:syntastic_mode_map = { 'mode': 'passive',
+                               \ 'active_filetypes': [],
+                               \ 'passive_filetypes': [] }
 
 """""""""""""""""""
 " leader commands "
@@ -118,8 +141,10 @@ nnoremap <Leader>t :CtrlP<CR>
 " kill search highlighting
 nnoremap <Leader>ks :nohlsearch<CR>
 
-" open a new terminal window
-noremap <Leader>nt :!xfce4-terminal<CR><CR>
+" syntastic
+nnoremap <Leader>syt :SyntasticToggleMode<CR>
+nnoremap <Leader>syc :SyntasticCheck<CR>
+nnoremap <Leader>syr :SyntasticReset<CR>
 
 """"""""""""""""""""""""""""
 " commenting with tComment "
