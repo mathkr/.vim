@@ -46,9 +46,29 @@ set clipboard=unnamedplus
 set scrolloff=2
 set title
 
+" Set the cursor highlighting
+highlight Cursor guifg=white guibg=red
+
+" highlighting comment 'tags' (copied from random stackoverflow post)
+highlight Important cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guifg=red
+if has("autocmd")
+    autocmd Syntax * call matchadd('Important', '\W\zs\(FIXME\|IMPORTANT\|BUG\)')
+    autocmd Syntax * call matchadd('Todo',  '\W\zs\(TODO\|CHANGED\|HACK\)')
+    autocmd Syntax * call matchadd('Debug', '\W\zs\(NOTE\|INFO\|IDEA\)')
+endif
+
 " disable backup and swap files
 set nobackup
 set noswapfile
+
+" set textwidth to 120 columns. 21st century and all...
+set textwidth=120
+
+" show highlighting group(s?) of word under cursor
+" (copied from: http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
+" map <F8> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
+" \ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
+" \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 
 " mark trailing whitespace
 highlight ExtraWhitespace cterm=bold ctermbg=cyan ctermfg=white gui=bold guibg=cyan guifg=white
@@ -58,8 +78,8 @@ match ExtraWhitespace /\s\+$/
 set listchars=tab:»·,eol:¶,trail:-,nbsp:-
 
 " mark column 80
-highlight ColorColumn ctermfg=red guifg=red ctermbg=NONE guibg=NONE
-set colorcolumn=81,82,83,84,85
+" highlight ColorColumn ctermfg=red guifg=red ctermbg=NONE guibg=NONE
+" set colorcolumn=81,82,83,84,85
 
 " search options
 set hlsearch
@@ -111,8 +131,8 @@ nnoremap <Leader>vr :tab drop $MYVIMRC<CR>
 inoremap <Leader>u <esc>viwUea
 nnoremap <Leader>u viwUe
 
-" insert 4 spaces
-inoremap <Leader><Tab> <ESC>a    
+" build with build script
+nnoremap <Leader>b :w<CR> :! ./build.sh<CR>
 
 " save
 nnoremap <Leader>w :w<CR>
@@ -175,10 +195,10 @@ noremap <C-h> <C-w>h
 " moving lines/blocks "
 "                     "
 
-nnoremap <S-j> :m .+1<CR>==
-nnoremap <S-k> :m .-2<CR>==
-vnoremap <S-j> :m '>+1<CR>gv=gv
-vnoremap <S-k> :m '<-2<CR>gv=gv
+nnoremap <space> :m .+1<CR>==
+nnoremap <S-space> :m .-2<CR>==
+vnoremap <space> :m '>+1<CR>gv=gv
+vnoremap <S-space> :m '<-2<CR>gv=gv
 
 """""""""""""""""""""""""""
 " autocompleting brackets "
