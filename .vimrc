@@ -55,10 +55,11 @@ set softtabstop=4
 set shiftwidth=4
 set smarttab
 set autoindent
+set nosmartindent
 set number
+set relativenumber
 set clipboard=unnamedplus
 set scrolloff=2
-set scroll=10
 set title
 set cursorline
 set cursorcolumn
@@ -72,6 +73,7 @@ set spelllang=de_de,en_us
 " disable backup and swap files
 set nobackup
 set noswapfile
+set nowritebackup
 
 " configure listchars
 set listchars=tab:»·,eol:¶,trail:-,nbsp:-
@@ -85,10 +87,6 @@ set incsearch
 " remap leader key
 let mapleader=','
 noremap \ ,
-
-" center on search results
-noremap n nzz
-noremap N Nzz
 
 " disabling manpage lookup shortcut which constantly annoys me
 " and adding split line functionality similar to <S-j>
@@ -109,7 +107,8 @@ let g:fuf_file_cache_dir = ''
 
 function! RegenerateTags()
     if filereadable("tags")
-        let ctags_cmd="ctags --recurse"
+        " let ctags_cmd="ctags --recurse"
+        let ctags_cmd="ctags *.cpp *.c *.h"
 
         execute "silent !" . ctags_cmd
 
@@ -135,6 +134,90 @@ highlight Important cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guif
 " highlight ColorColumn ctermfg=red guifg=red ctermbg=NONE guibg=NONE
 " set colorcolumn=81,82,83,84,85
 
+function! OpenQuickfixWindow()
+    if (winnr('$') == 1) && (winwidth(0) > 150)
+        let winw=(winwidth(0) / 2)
+        exec "vert cwindow " . winw
+    else
+        cwindow 15
+    endif
+endfunction
+
+function! FindTODOs()
+    silent! vimgrep /TODO/gj **/*
+    call OpenQuickfixWindow()
+endfunction
+
+command! TODO call FindTODOs()
+
+""""""""""""""""""""""""""""""""""""
+"       enclose with if/for        "
+"                                  "
+
+function! VisualEncloseAndPrepend(prefix)
+    normal! `>
+    normal! o}
+
+    normal! `<
+    normal! O{
+
+    '<,'>normal! >>
+
+    execute 'normal! `<kO' . a:prefix . '('
+    startinsert!
+endfunction
+
+function! EncloseAndPrepend(type, prefix)
+    if a:type == 'v'
+        normal! `<
+        normal! mx
+
+        normal! `>
+        normal! my
+    else
+        normal! `[
+        normal! mx
+
+        normal! `]
+        normal! my
+    endif
+
+    normal! `x
+    normal! O{
+    execute "normal! O" . a:prefix . " ()"
+    normal! 0mx
+
+    normal! `y
+    normal! o}
+    normal! my
+
+    'x,'ynormal! ==
+
+    normal! `x$
+    startinsert
+endfunction
+
+function! EncloseAndPrependFor(type)
+    call EncloseAndPrepend(a:type, "for")
+endfunction
+
+function! EncloseAndPrependIf(type)
+    call EncloseAndPrepend(a:type, "if")
+endfunction
+
+function! EncloseAndPrependWhile(type)
+    call EncloseAndPrepend(a:type, "while")
+endfunction
+
+" enclose with for/if
+vnoremap <Leader>ei <ESC>:call EncloseAndPrepend("v", "if")<CR>
+vnoremap <Leader>ef <ESC>:call EncloseAndPrepend("v", "for")<CR>
+vnoremap <Leader>ew <ESC>:call EncloseAndPrepend("v", "while")<CR>
+
+nnoremap <Leader>ei :setlocal operatorfunc=EncloseAndPrependIf<CR>g@
+nnoremap <Leader>ef :setlocal operatorfunc=EncloseAndPrependFor<CR>g@
+nnoremap <Leader>ew :setlocal operatorfunc=EncloseAndPrependWhile<CR>g@
+
 """"""""""""""""""""""""""""
 "       autocommands       "
 "                          "
@@ -149,6 +232,7 @@ if has("autocmd")
     autocmd FileType cpp syn keyword cppType u8 u16 u32 u64 i8 i16 i32 i64 memt r32 r64 intptr
 
     autocmd BufWritePost *.cpp call RegenerateTags()
+    autocmd BufWritePost *.c call RegenerateTags()
 
     autocmd BufWritePost * FufRenewCache
     autocmd FocusGained * FufRenewCache
@@ -164,14 +248,13 @@ if has("autocmd")
     endfunction
 
     autocmd FileType cpp call CPPBrackets()
+    autocmd FileType c call CPPBrackets()
 endif
 
 
 """""""""""""""""""""
 "       prose       "
 "                   "
-
-" TODO: make a function?
 
 function! ProseMode()
     " set formatoptions=ta1
@@ -200,42 +283,12 @@ endfunction
 " \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 
 """""""""""""""""""
-" taglist options "
-"                 "
-
-let Tlist_Exit_OnlyWindow = 1
-let Tlist_GainFocus_On_ToggleOpen = 1
-let Tlist_WinWidth = 30
-let Tlist_Enable_Fold_Column = 0
-let Tlist_Display_Tag_Scope = 0
-
-""""""""""""""""""""
-" snipmate options "
-"                  "
-
-let g:snips_author="Matthis Krause"
-
-"""""""""""""""""""""
-" syntastic options "
-"                   "
-
-let g:syntastic_check_on_open=0
-let g:syntastic_check_on_wq=0
-let g:syntastic_mode_map = { 'mode': 'passive',
-                               \ 'active_filetypes': [],
-                               \ 'passive_filetypes': [] }
-
-"""""""""""""""""""
 " leader commands "
 "                 "
 
 " open this file in a new tab
 nnoremap <Leader>vr :tab drop $MYVIMRC<CR>
 nnoremap <Leader>sov :so $MYVIMRC<CR>
-
-" uppercase current word
-inoremap <Leader>u <esc>viwUea
-nnoremap <Leader>u viwUe
 
 nnoremap <Leader>w :w<CR>
 
@@ -250,9 +303,6 @@ nnoremap <Leader>hs :split<CR>
 " toggle taglist
 nnoremap <Leader><CR> :TlistToggle<CR>
 
-" rebuild tags file
-nnoremap <Leader>ct :silent !ctags --recurse<CR>
-
 " FuzzyFinder (fuzzy everything search
 nnoremap <Leader>t :FufFile<CR>
 nnoremap <Leader>f :FufTag<CR>
@@ -260,20 +310,6 @@ nnoremap <Leader>b :FufBuffer<CR>
 
 " kill search highlighting
 nnoremap <Leader>ks :nohlsearch<CR>
-
-" syntastic
-nnoremap <Leader>sst :SyntasticToggleMode<CR>
-nnoremap <Leader>ssc :SyntasticCheck<CR>
-nnoremap <Leader>ssr :SyntasticReset<CR>
-
-function! OpenQuickfixWindow()
-    if (winnr('$') == 1) && (winwidth(0) > 150)
-        let winw=(winwidth(0) / 2)
-        exec "vert cwindow " . winw
-    else
-        cwindow 15
-    endif
-endfunction
 
 " makey makey
 nnoremap <Leader>m :silent make<CR>:call OpenQuickfixWindow()<CR>
