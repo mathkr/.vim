@@ -15,8 +15,6 @@ set sessionoptions-=options
 """""""""""""""""""""""
 "       general       "
 "                     "
-"
-" TODO(mk): UNDO FILE!
 
 :let pi = 3.14159265359
 :let e  = 2.71828182846
@@ -26,19 +24,25 @@ let g:solarized_italic=0
 if (has("gui_running") == 0)
     set t_Co=256
     let g:rehash256=1
-    colorscheme default
+    colorscheme molokai
     set background=dark
 else
     colorscheme solarized
     " colorscheme molokai
+
     set background=dark
+
     " set guifont=Liberation\ Mono\ 11
     " set guifont=Droid\ Sans\ Mono\ Regular\ 9
-    " set guifont=Consolas\ Regular\ 10
-    set guifont=DejaVu\ Sans\ Mono\ Regular\ 9
+    " set guifont=Inconsolata\ Regular\ 9
+    " set guifont=DejaVu\ Sans\ Mono\ Regular\ 9
+    set guifont=Terminus\ Regular\ 8
     " set guifont=Ubuntu\ Mono\ Regular\ 10
+    " set guifont=Andale\ Mono:h11
     " set guifont=ProFont\ 10
+
     set guiheadroom=0
+
     set guioptions-=r " removes right scrollbar
     set guioptions-=L " removes right scrollbar
     set guioptions-=T " removes toolbar
@@ -58,7 +62,7 @@ set autoindent
 set nosmartindent
 set number
 set relativenumber
-set clipboard=unnamedplus
+" set clipboard=unnamedplus
 set scrolloff=2
 set title
 set cursorline
@@ -67,13 +71,24 @@ set wildmenu
 set textwidth=100
 set splitright
 set nohidden
+set nowrap
+set noerrorbells visualbell t_vb=
 
 set spelllang=de_de,en_us
 
-" disable backup and swap files
 set nobackup
-set noswapfile
 set nowritebackup
+set noswapfile
+set noundofile
+
+function! PrivacyMode()
+    " privacy and security
+    set viminfo="NONE"
+    set noshelltemp
+    set history=0
+endfunction
+
+command! Privacy :call PrivacyMode()
 
 " configure listchars
 set listchars=tab:»·,eol:¶,trail:-,nbsp:-
@@ -103,14 +118,82 @@ set makeprg=./build.sh
 noremap <C-n> :cn<CR>
 noremap <C-p> :cp<CR>
 
+" create scratch buffer
+function! OpenScratchBuffer()
+    :vert new scratch
+    :setlocal buftype=nofile
+    :setlocal bufhidden=hide
+    :setlocal noswapfile
+endfunction
+
+command! Scratch :call OpenScratchBuffer()
+
 let g:fuf_file_cache_dir = ''
+
+function! ReplaceCTypeNames()
+    set hidden
+
+    argdo %s/\([({;, ]\|^\)uint8_t\([ )]\|$\)/\1u8\2/gIe
+    argdo %s/\([({;, ]\|^\)uint16_t\([ )]\|$\)/\1u16\2/gIe
+    argdo %s/\([({;, ]\|^\)uint32_t\([ )]\|$\)/\1u32\2/gIe
+    argdo %s/\([({;, ]\|^\)uint64_t\([ )]\|$\)/\1u64\2/gIe
+
+    argdo %s/\([({;, ]\|^\)int8_t\([ )]\|$\)/\1i8\2/gIe
+    argdo %s/\([({;, ]\|^\)int16_t\([ )]\|$\)/\1i16\2/gIe
+    argdo %s/\([({;, ]\|^\)int32_t\([ )]\|$\)/\1i32\2/gIe
+    argdo %s/\([({;, ]\|^\)int64_t\([ )]\|$\)/\1i64\2/gIe
+
+    argdo %s/\([({;, ]\|^\)size_t\([ )]\|$\)/\1memt\2/gIe
+    argdo %s/\([({;, ]\|^\)ssize_t\([ )]\|$\)/\1smemt\2/gIe
+
+    argdo %s/\([({;, ]\|^\)float\([ )]\|$\)/\1r32\2/gIe
+    argdo %s/\([({;, ]\|^\)double\([ )]\|$\)/\1r64\2/gIe
+    argdo %s/\([({;, ]\|^\)uintptr_t\([ )]\|$\)/\1intptr\2/gIe
+
+    argdo %s/\([({;, ]\|^\)int\([ )]\|$\)/\1i32\2/gIe
+
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)UINT32_MAX\([ );,\*+\/\-=%\^!~]\)/\1U32MAX\2/gIe
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)INT32_MAX\([ );,\*+\/\-=%\^!~]\)/\1I32MAX\2/gIe
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)INT32_MIN\([ );,\*+\/\-=%\^!~]\)/\1I32MIN\2/gIe
+
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)FLT_MAX\([ );,\*+\/\-=%\^!~]\)/\1R32MAX\2/gIe
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)FLT_MIN\([ );,\*+\/\-=%\^!~]\)/\1R32MIN\2/gIe
+
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)DBL_MAX\([ );,\*+\/\-=%\^!~]\)/\1R64MAX\2/gIe
+    argdo %s/\([({;,\*+\/\-=%\^!~ ]\)DBL_MIN\([ );,\*+\/\-=%\^!~]\)/\1R64MIN\2/gIe
+endfunction
+
+function! CIncludeGuards()
+    let @a = expand('%:t')
+
+    normal gg
+    normal O#ifndef 
+    normal "ap
+    normal F.
+    normal r_
+    normal gUiw
+    normal yiw
+    normal o#define 
+    normal p
+    normal o
+
+    normal G
+    normal o#endif // 
+    normal p
+    normal O
+    normal gg
+endfunction
 
 function! RegenerateTags()
     if filereadable("tags")
         " let ctags_cmd="ctags --recurse"
-        let ctags_cmd="ctags *.cpp *.c *.h"
+        " let ctags_cmd="ctags *.cpp *.c *.h *.scala *.java &"
+        let ctags_cmd="ctags -R --exclude=extern --append=no . &"
+        " let ctags_cmd="ctags -R --append=no . &"
+
 
         execute "silent !" . ctags_cmd
+        " execute "!" . ctags_cmd
 
         if v:shell_error != 0
             echom "RegenerateTags: '" . ctags_cmd . "' returned error code: " . v:shell_error
@@ -149,6 +232,8 @@ function! FindTODOs()
 endfunction
 
 command! TODO call FindTODOs()
+
+command! DATE put =strftime('%c')
 
 """"""""""""""""""""""""""""""""""""
 "       enclose with if/for        "
@@ -229,14 +314,15 @@ if has("autocmd")
     autocmd Syntax * match ExtraWhitespace /\s\+$/
 
     " c++ type highlighting
-    autocmd FileType cpp syn keyword cppType u8 u16 u32 u64 i8 i16 i32 i64 memt r32 r64 intptr
+    autocmd FileType cpp syn keyword cppType u8 u16 u32 u64 i8 i16 i32 i64 memt smemt r32 r64 intptr
+    autocmd FileType c syn keyword cType u8 u16 u32 u64 i8 i16 i32 i64 memt smemt r32 r64 f32 f64 intptr
 
-    autocmd BufWritePost *.cpp call RegenerateTags()
-    autocmd BufWritePost *.c call RegenerateTags()
+    autocmd BufWritePost *.h,*.cpp,*.c,*.scala,*.java call RegenerateTags()
+
+    autocmd FileType c,cpp command! IncludeGuard call CIncludeGuards()
 
     autocmd BufWritePost * FufRenewCache
     autocmd FocusGained * FufRenewCache
-
 
     """""""""""""""""""""""""""
     " autocompleting brackets "
@@ -249,6 +335,8 @@ if has("autocmd")
 
     autocmd FileType cpp call CPPBrackets()
     autocmd FileType c call CPPBrackets()
+
+    autocmd GUIEnter * set visualbell t_vb=
 endif
 
 
@@ -275,6 +363,8 @@ function! ProseMode()
 
     nnoremap p p
 endfunction
+
+command! Prose :call ProseMode()
 
 " show highlighting group(s?) of word under cursor
 " (copied from: http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
@@ -317,6 +407,9 @@ nnoremap <Leader>m :silent make<CR>:call OpenQuickfixWindow()<CR>
 " commenting out code with tComment
 nnoremap <Leader>cc :TComment<CR>
 vnoremap <Leader>cc :TCommentMaybeInline<CR>
+
+" vimgrep for word under cursor
+nnoremap <Leader>* *:vimgrep // **/*.c **/*.cpp **/*.h<CR>
 
 """""""""""""""""""""""""""""
 " navigating between splits "
